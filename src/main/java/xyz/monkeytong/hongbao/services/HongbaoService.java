@@ -21,6 +21,11 @@ import java.util.List;
 import xyz.monkeytong.hongbao.utils.HongbaoSignature;
 import xyz.monkeytong.hongbao.utils.PowerUtil;
 
+
+/**
+ * 夏敏
+ * 红包service
+ */
 public class HongbaoService extends AccessibilityService implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String WECHAT_DETAILS_EN = "Details";
     private static final String WECHAT_DETAILS_CH = "红包详情";
