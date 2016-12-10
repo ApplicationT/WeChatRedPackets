@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.tencent.bugly.crashreport.CrashReport;
 
 import java.util.List;
 
@@ -26,6 +25,7 @@ import xyz.monkeytong.hongbao.utils.ConnectivityUtil;
 import xyz.monkeytong.hongbao.utils.UpdateTask;
 
 
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class MainActivity extends Activity implements AccessibilityManager.AccessibilityStateChangeListener {
 
     //开关切换按钮
@@ -37,7 +37,7 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        CrashReport.initCrashReport(getApplicationContext(), "900019352", false);
+       // CrashReport.initCrashReport(getApplicationContext(), "900019352", false);
         setContentView(R.layout.activity_main);
         pluginStatusText = (TextView) findViewById(R.id.layout_control_accessibility_text);
         pluginStatusIcon = (ImageView) findViewById(R.id.layout_control_accessibility_icon);
@@ -48,7 +48,9 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
         //监听AccessibilityService 变化
         accessibilityManager = (AccessibilityManager) getSystemService(Context.ACCESSIBILITY_SERVICE);
-        accessibilityManager.addAccessibilityStateChangeListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            accessibilityManager.addAccessibilityStateChangeListener(this);
+        }
         updateServiceStatus();
     }
 
@@ -86,7 +88,9 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
     @Override
     protected void onDestroy() {
         //移除监听服务
-        accessibilityManager.removeAccessibilityStateChangeListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            accessibilityManager.removeAccessibilityStateChangeListener(this);
+        }
         super.onDestroy();
     }
 
@@ -135,10 +139,15 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
      */
     private boolean isServiceEnabled() {
         List<AccessibilityServiceInfo> accessibilityServices =
-                accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
+                null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            accessibilityServices = accessibilityManager.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_GENERIC);
+        }
         for (AccessibilityServiceInfo info : accessibilityServices) {
-            if (info.getId().equals(getPackageName() + "/.services.HongbaoService")) {
-                return true;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                if (info.getId().equals(getPackageName() + "/.services.HongbaoService")) {
+                    return true;
+                }
             }
         }
         return false;

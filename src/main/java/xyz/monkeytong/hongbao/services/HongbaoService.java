@@ -60,7 +60,7 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         if (sharedPreferences == null) return;
 
         setCurrentActivityName(event);
-
+        watchChatMoney(event);
         /* 检测通知消息 */
         if (!mMutex) {
             if (sharedPreferences.getBoolean("pref_watch_notification", false) && watchNotifications(event))
@@ -114,40 +114,41 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
                     },
                     delayFlag);
         }
-
     }
 
-    private void watchChatMoney(AccessibilityEvent event)
-    {
+
+    /**
+     * 获取红包金额
+     *
+     * @param event
+     */
+    private void watchChatMoney(AccessibilityEvent event) {
         rootNodeInfo = getRootInActiveWindow();
         if (rootNodeInfo == null) return;
         float mTmpMoney = 0;
-
+        Log.i("iii", " 开始查找金额");
         List<AccessibilityNodeInfo> moneyInfo = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            moneyInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId("com.tencent.mm:id/bb0");
-            if(moneyInfo != null && moneyInfo.size() != 0) {
-                Log.i("iii", " 找到bb0 金额text");
+            moneyInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId("com.tencent.mm:id/bgg");
+            if (moneyInfo != null && moneyInfo.size() != 0) {
+                Log.i("iii", " 找到bb0 金额 查找");
 
-                for (AccessibilityNodeInfo mynode: moneyInfo)
-                {
-                    if ("android.widget.TextView".equals(mynode.getClassName()))
-                    {
-
+                for (AccessibilityNodeInfo mynode : moneyInfo) {
+                    if ("android.widget.TextView".equals(mynode.getClassName())) {
                         mTmpMoney = Float.parseFloat(mynode.getText().toString());
-                        Log.i("iii"," 遍历mynode getText(): "+  mTmpMoney);
-                        //    mynode.performAction(AccessibilityNodeInfo.ACTION_COPY);
+                        Log.i("iii", " 遍历mynode getText(): " + mTmpMoney);
+                    } else {
+                        Log.i("iii", " 该node失败" + mynode.getText());
                     }
                 }
-
-                Toast.makeText(this,"金额"+ mTmpMoney,Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "金额" + mTmpMoney, Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void setCurrentActivityName(AccessibilityEvent event) {
         if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            Log.i("iii"," TYPE_WINDOW_STATE_CHANGED");
+            Log.i("iii", " TYPE_WINDOW_STATE_CHANGED");
             return;
         }
 
