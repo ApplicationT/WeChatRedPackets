@@ -135,7 +135,8 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
 
                 for (AccessibilityNodeInfo mynode : moneyInfo) {
                     if ("android.widget.TextView".equals(mynode.getClassName())) {
-                        mTmpMoney = Float.parseFloat(mynode.getText().toString());
+
+                        //mTmpMoney = Float.parseFloat(mynode.getText().toString());
                         Log.i("iii", " 遍历mynode getText(): " + mTmpMoney);
                     } else {
                         Log.i("iii", " 该node失败" + mynode.getText());

@@ -96,11 +96,11 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
 
     public void openAccessibility(View view) {
         try {
-            Toast.makeText(this, "点击「微信红包」" + pluginStatusText.getText(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "点击「海贼王插件」" + pluginStatusText.getText(), Toast.LENGTH_SHORT).show();
             Intent accessibleIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(accessibleIntent);
         } catch (Exception e) {
-            Toast.makeText(this, "遇到一些问题,请手动打开系统设置>无障碍服务>微信红包(ฅ´ω`ฅ)", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "遇到一些问题,请手动打开系统设置>无障碍服务>海贼王插件", Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }
