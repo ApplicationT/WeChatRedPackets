@@ -9,8 +9,10 @@ import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -19,7 +21,9 @@ import android.widget.Toast;
 import java.util.List;
 
 import xyz.monkeytong.hongbao.utils.HongbaoSignature;
+import xyz.monkeytong.hongbao.utils.MoneyPackInfo;
 import xyz.monkeytong.hongbao.utils.PowerUtil;
+import xyz.monkeytong.hongbao.utils.WeChatConstant;
 
 
 /**
@@ -49,6 +53,14 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
 
     private PowerUtil powerUtil;
     private SharedPreferences sharedPreferences;
+    private Handler mHandler;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mHandler = new Handler();
+        WeChatConstant.upDataId(getApplicationContext());
+    }
 
     /**
      * AccessibilityEvent
@@ -59,8 +71,13 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (sharedPreferences == null) return;
 
-        setCurrentActivityName(event);
-        watchChatMoney(event);
+
+
+
+   //     setCurrentActivityName(event);
+    //    watchChatMoney(event);
+        watchNotifications(event);
+        getPackageMoney(event);
         /* 检测通知消息 */
         if (!mMutex) {
             if (sharedPreferences.getBoolean("pref_watch_notification", false) && watchNotifications(event))
@@ -190,29 +207,6 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
         return false;
     }
 
-    private boolean watchNotifications(AccessibilityEvent event) {
-        // Not a notification
-        if (event.getEventType() != AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED)
-            return false;
-
-        // Not a hongbao
-        String tip = event.getText().toString();
-        if (!tip.contains(WECHAT_NOTIFICATION_TIP)) return true;
-
-        Parcelable parcelable = event.getParcelableData();
-        if (parcelable instanceof Notification) {
-            Notification notification = (Notification) parcelable;
-            try {
-                /* 清除signature,避免进入会话后误判 */
-                signature.cleanSignature();
-
-                notification.contentIntent.send();
-            } catch (PendingIntent.CanceledException e) {
-                e.printStackTrace();
-            }
-        }
-        return true;
-    }
 
     @Override
     public void onInterrupt() {
@@ -386,4 +380,136 @@ public class HongbaoService extends AccessibilityService implements SharedPrefer
             return wordsArray[(int) (Math.random() * wordsArray.length)];
         }
     }
+    public final static String TAG = "MoneyCounter";
+
+    private boolean watchNotifications(AccessibilityEvent event) {
+        // 判断是不是一个通知
+        if (event.getEventType() != AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED)
+            return false;
+
+        // 判断是不是红包
+        String tip = event.getText().toString();
+        if (!tip.contains(WeChatConstant.WECHAT_NOTIFICATION_TIP)) {
+            Log.d(TAG, "不是微信红包");
+            return true;
+        }
+        Log.d(TAG, "来了一个微信红包");
+        Parcelable parcelable = event.getParcelableData();
+        if (parcelable instanceof Notification) {
+            Notification notification = (Notification) parcelable;
+            try {
+                /* 清除signature,避免进入会话后误判 */
+                // signature.cleanSignature();
+                Log.d(TAG, "点击进入");
+                notification.contentIntent.send();
+            } catch (PendingIntent.CanceledException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+    Boolean mOpenPack = false;
+
+    private void getPackageMoney(AccessibilityEvent event) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            rootNodeInfo = getRootInActiveWindow();
+        }
+        if (rootNodeInfo == null) return;
+        /**
+         * 寻找红包名
+         */
+        List<AccessibilityNodeInfo> itemInfo = null;
+        Log.d(TAG, "寻找红包名");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+
+            itemInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId(WeChatConstant.RED_PACK_LAYOUT);
+            if (itemInfo != null && itemInfo.size() != 0) {
+                AccessibilityNodeInfo layoutnode = itemInfo.get(itemInfo.size() - 1);
+                Log.d(TAG, "找到红包layout " + itemInfo.size() + "个");
+                if ("android.widget.LinearLayout".equals(layoutnode.getClassName())) {
+                    Log.d(TAG, "找到红包item");
+                    if (layoutnode.findAccessibilityNodeInfosByText(WeChatConstant.WECHAT_PACK_TIP) != null
+                            && layoutnode.findAccessibilityNodeInfosByText(WeChatConstant.WECHAT_VIEW_OTHERS_CH) != null) {
+                        Log.d(TAG, "找到微信红包 ");
+                        if (layoutnode.getParent() != null) {
+                            List<AccessibilityNodeInfo> nameInfo = null;
+                            String name = "";
+                            nameInfo = layoutnode.getParent().findAccessibilityNodeInfosByViewId(WeChatConstant.RED_PACK_NAME);
+                            if (nameInfo != null && nameInfo.size() != 0) {
+                                name = nameInfo.get(0).getText().toString();
+                            }
+                            List<AccessibilityNodeInfo> textInfo = null;
+                            String text = "";
+                            textInfo = layoutnode.getParent().findAccessibilityNodeInfosByViewId(WeChatConstant.RED_PACK_TEXT);
+                            if (textInfo != null && textInfo.size() != 0) {
+                                text = textInfo.get(0).getText().toString();
+                            }
+                            Log.i(TAG, "该红包 name " + name + " text " + text);
+
+                            if (MoneyPackInfo.checkPack(name, text)) {
+                                if (text != null && !TextUtils.isEmpty(text) && text.length() != 0) {
+                                    char c = text.charAt(text.length() - 1);
+                                    Log.i(TAG, "该红包未在点击过列表中，点击红包  结尾字符" + c);
+                                        layoutnode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                                        mOpenPack = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            /**
+             * 寻找点击按钮
+             */
+
+            itemInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId(WeChatConstant.WECHAT_Click_button);
+            if (itemInfo != null && itemInfo.size() != 0) {
+                AccessibilityNodeInfo layoutnode = itemInfo.get(0);
+                if (layoutnode != null) {
+                    Log.i(TAG, "点击打开红包");
+                    layoutnode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    mOpenPack = true;
+                }
+            }
+
+            itemInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId(WeChatConstant.WECHAT_BETTER_LUCK_CH);
+            if (itemInfo != null && itemInfo.size() != 0) {
+                itemInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId(WeChatConstant.WECHAT_cancel_button);
+                if (itemInfo != null && itemInfo.size() != 0) {
+                    AccessibilityNodeInfo layoutnode = itemInfo.get(0);
+                    if (layoutnode != null) {
+
+                        if (mOpenPack) {
+                            Log.i(TAG, "点击关闭红包");
+                            layoutnode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                            mOpenPack = false;
+                        }
+
+                    }
+                }
+            }
+
+
+            itemInfo = rootNodeInfo.findAccessibilityNodeInfosByViewId(WeChatConstant.WECHAT_BACK);
+            if (itemInfo != null && itemInfo.size() != 0) {
+                final AccessibilityNodeInfo layoutnode = itemInfo.get(0);
+                if (layoutnode != null) {
+                    Log.i(TAG, "找到详情页 返回按钮 mOpenPack = " + mOpenPack);
+                    if (mOpenPack) {
+                        Log.i(TAG, "点击关闭详情");
+                        mHandler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                layoutnode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                                mOpenPack = false;
+                            }
+                        }, 100);
+                    }
+                }
+            }
+
+        }
+    }
+
 }

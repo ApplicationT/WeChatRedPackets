@@ -20,7 +20,7 @@ public class PowerUtil {
     }
 
     private void acquire() {
-        wakeLock.acquire(1800000);
+        wakeLock.acquire(60*60*24*1000);
         keyguardLock.disableKeyguard();
     }
 

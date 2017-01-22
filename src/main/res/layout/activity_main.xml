@@ -188,7 +188,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_margin="2dp"
-            android:text="王亚杰测试"
+            android:text="Anderson测试1号版本"
             android:textColor="#858585" />
 
 
