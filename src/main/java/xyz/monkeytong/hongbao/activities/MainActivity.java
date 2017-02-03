@@ -1,5 +1,6 @@
 package xyz.monkeytong.hongbao.activities;
 
+import android.Manifest;
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -16,6 +17,9 @@ import android.view.accessibility.AccessibilityManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.cn.jerey.permissiontools.Callback.PermissionCallbacks;
+import com.cn.jerey.permissiontools.PermissionTools;
 
 import java.util.List;
 
@@ -49,6 +53,23 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
             accessibilityManager.addAccessibilityStateChangeListener(this);
         }
         updateServiceStatus();
+        new PermissionTools.Builder(MainActivity.this)
+                .setRequestCode(100)
+                .setOnPermissionCallbacks(new PermissionCallbacks() {
+                    @Override
+                    public void onPermissionsGranted(int requestCode, List<String> perms) {
+
+                    }
+
+                    @Override
+                    public void onPermissionsDenied(int requestCode, List<String> perms) {
+
+                    }
+                })
+                .build()
+                .requestPermissions(Manifest.permission.CAMERA);
+
+
     }
 
     private void explicitlyLoadPreferences() {
@@ -77,9 +98,6 @@ public class MainActivity extends Activity implements AccessibilityManager.Acces
     protected void onResume() {
         super.onResume();
 
-        // Check for update when WIFI is connected or on first time.
-       // if (ConnectivityUtil.isWifi(this) || UpdateTask.count == 0)
-          //  new UpdateTask(this, false).update();
     }
 
     @Override

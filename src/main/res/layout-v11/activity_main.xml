@@ -41,9 +41,11 @@
             android:layout_above="@+id/layout_control"
             android:layout_alignParentTop="true"
             android:layout_marginTop="4dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
             android:gravity="center_vertical|center_horizontal"
-            android:text="v1.0"
-            android:textColor="#fff" />
+            android:text="目前抢红包功能，不算很稳定，主要是因为重复红包判断导致。"
+            android:textColor="#9dffffff" />
 
         <ImageView
             android:layout_width="150dp"

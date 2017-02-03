@@ -5,15 +5,11 @@ import android.content.SharedPreferences;
 import android.preference.DialogPreference;
 import android.util.AttributeSet;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import org.w3c.dom.Text;
+
 import xyz.monkeytong.hongbao.R;
 
-/**
- * Created by Zhongyi on 2/3/16.
- */
 public class SeekBarPreference extends DialogPreference {
     private SeekBar seekBar;
     private TextView textView;

@@ -19,27 +19,6 @@ public class GeneralSettingsFragment extends PreferenceFragment {
     }
 
     private void setPrefListeners() {
-        // Check for updates
-//        Preference updatePref = findPreference("pref_etc_check_update");
-//        updatePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-//            public boolean onPreferenceClick(Preference preference) {
-//                new UpdateTask(getActivity().getApplicationContext(), true).update();
-//                return false;
-//            }
-//        });
-
-//        // Open issue
-//        Preference issuePref = findPreference("pref_etc_issue");
-//        issuePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-//            public boolean onPreferenceClick(Preference preference) {
-//                Intent webViewIntent = new Intent(getActivity(), WebViewActivity.class);
-//                webViewIntent.putExtra("title", "GitHub Issues");
-//                webViewIntent.putExtra("url", getString(R.string.url_github_issues));
-//                webViewIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                startActivity(webViewIntent);
-//                return false;
-//            }
-//        });
 
         Preference excludeWordsPref = findPreference("pref_watch_exclude_words");
         String summary = getResources().getString(R.string.pref_watch_exclude_words_summary);
